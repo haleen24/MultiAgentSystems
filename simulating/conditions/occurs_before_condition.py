@@ -5,6 +5,10 @@ from pm4py import PetriNet
 
 
 class OccursBeforeCondition(Condition):
+    """
+    condition for a < b <=> a occurs before b
+    with cyclic conditions in model works in this way: if a is occurred, then b can occur several times
+    """
     def __init__(self, a: PetriNet.Transition | str, b: PetriNet.Transition | str):
         self.a = a
         self.b = b

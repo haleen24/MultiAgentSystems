@@ -7,6 +7,9 @@ from simulating.conditions.condition import Condition
 
 
 class SyncCondition(Condition):
+    """
+    condition for firing synchronized transitions. It also works with cycles if parameter is_cyclic_condition passed
+    """
 
     def __init__(self, transitions: Iterable[PetriNet.Transition], is_cyclic_condition: bool = False):
         self.transitions = set(transitions)

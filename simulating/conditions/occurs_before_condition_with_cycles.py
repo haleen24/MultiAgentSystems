@@ -6,6 +6,10 @@ from simulating.conditions.condition import Condition
 
 
 class OccursBeforeConditionWithCycles(Condition):
+    """
+    cyclic condition for a < b <=> a occurs before b
+    for each b in trace, there should be own a
+    """
 
     def __init__(self, a: PetriNet.Transition | str, b: PetriNet.Transition | str):
         self.a = a

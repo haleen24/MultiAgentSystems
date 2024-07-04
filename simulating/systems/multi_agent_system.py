@@ -13,9 +13,21 @@ from simulating.systems.firing import play_from_places, play_from_transitions, a
 
 
 class MultiAgentSystem:
+    """
+    Allows to simulate behaviour of several Petri nets with conditions between transitions
+
+    Using Pm4py representation of Petri net
+    """
     def __init__(self, nets: list[PetriNet], tokens: list[Marking], conditions: list[Condition],
                  start_time: datetime.datetime = datetime.datetime.now(),
                  transition_duration: int = 1):
+        """
+        :param nets = list of petri nets:
+        :param tokens = list of Pm4py marking for each net:
+        :param conditions = list of conditions:
+        :param start_time = time from which the track starts:
+        :param transition_duration = for each next transition the time of firing will be increased by this value:
+        """
         self.start_time = start_time
         self.transition_duration = transition_duration
         self.nets = nets
