@@ -8,15 +8,16 @@ from simulating.conditions.condition import Condition
 
 class SyncCondition(Condition):
 
-    def __init__(self, transitions: Iterable[PetriNet.Transition]):
+    def __init__(self, transitions: Iterable[PetriNet.Transition], is_cyclic_condition: bool = False):
         self.transitions = set(transitions)
         self.prepositions = set(chain.from_iterable([j.source for j in i.in_arcs] for i in transitions))
+        self.cyclic = is_cyclic_condition
 
-    def check(self, trace: set[PetriNet.Transition | str] = None) -> bool:
-        return self.prepositions.issubset(trace)
+    def check(self, trace: dict[PetriNet.Transition | str, int]) -> bool:
+        return self.prepositions.issubset(set(trace.keys()))
 
-    def still_relevant(self, trace: set[PetriNet.Transition | str]) -> bool:
-        return any(i not in trace for i in self.transitions)
+    def still_relevant(self, trace: dict[PetriNet.Transition | str, int]) -> bool:
+        return self.cyclic or any(i not in trace for i in self.transitions)
 
     def get_dependent(self) -> Iterable[PetriNet.Transition | str]:
         return self.transitions

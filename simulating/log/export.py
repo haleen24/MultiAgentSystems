@@ -11,4 +11,3 @@ def export_csv(file_name, event_logs: Iterable[Iterable[EventLog]], append: bool
         for i in event_logs:
             for j in i:
                 file.write(str(j) + "\n")
-            file.write("\n\n")

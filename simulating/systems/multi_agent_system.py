@@ -1,3 +1,5 @@
+import datetime
+import random
 from itertools import chain
 from random import choice
 from typing import Tuple
@@ -7,14 +9,18 @@ from simulating.conditions.condition import Condition
 from simulating.conditions.sync_condition import SyncCondition
 from simulating.log.event_log import EventLog
 from simulating.systems.deadlock_exception import DeadLockException
-from simulating.systems.firing import play_from_places, play_from_transitions
+from simulating.systems.firing import play_from_places, play_from_transitions, add_all
 
 
 class MultiAgentSystem:
-    def __init__(self, nets: list[PetriNet], tokens: list[Marking], conditions: list[Condition]):
+    def __init__(self, nets: list[PetriNet], tokens: list[Marking], conditions: list[Condition],
+                 start_time: datetime.datetime = datetime.datetime.now(),
+                 transition_duration: int = 1):
+        self.start_time = start_time
+        self.transition_duration = transition_duration
         self.nets = nets
         self.tokens = set(chain.from_iterable(i.keys() for i in tokens))
-        self.trace = self.tokens.copy()
+        self.trace = dict()
         self.conditions = conditions
         self.banned = set()
         self.logs = []
@@ -36,24 +42,26 @@ class MultiAgentSystem:
 
     def step(self,
              element: PetriNet.Transition | Tuple[set[PetriNet.Place], set[PetriNet.Transition]] | set[
-                 PetriNet.Transition]):
+                 PetriNet.Transition], trace_id: int = 0):
+
         if isinstance(element, PetriNet.Transition):
             play_from_transitions(element, self.tokens)
-            self.trace.update(i.target for i in element.out_arcs)
+            add_all(self.trace, set(i.target for i in element.out_arcs))
 
         elif isinstance(element, Tuple):
             places = element[0]
             transitions = element[1]
             play_from_places(places, transitions, self.tokens)
-            self.trace.update(transitions)
+            add_all(self.trace, transitions)
             labels = ", ".join(i.label for i in transitions)
             nets = ", ".join(i.properties["net"] for i in transitions)
-            self.logs.append(EventLog(labels, nets))
+            self.logs.append(EventLog(labels, nets, trace_id, time=self.start_time))
+            self.start_time = self.start_time + datetime.timedelta(seconds=self.transition_duration)
         self.update_conditions()
         self.update_banned()
 
-    def simulate(self, max_depht: int = None):
-        self.trace = set(self.tokens)
+    def simulate(self, max_depht: int = None, trace_id: int = random.randint(0, 10_000)):
+        self.trace = dict((i, 1) for i in self.tokens)
         if not self.tokens:
             raise Exception("empty start marking")
         max_depht = 2 * sum(len(i.places) + len(i.transitions) for i in self.nets) if max_depht is None else max_depht
@@ -63,7 +71,7 @@ class MultiAgentSystem:
             active_elements = self.get_all_possible_elements()
             if not active_elements:
                 break
-            self.step(choice(active_elements))
+            self.step(choice(active_elements), trace_id)
             cur_depth += 1
 
         if any(len(i.out_arcs) != 0 for i in self.tokens):
@@ -85,7 +93,7 @@ class MultiAgentSystem:
         for i in [j for j in self.conditions if isinstance(j, SyncCondition)]:
             if any(j in self.banned for j in i.get_dependent()):
                 continue
-            if i.check(self.tokens):
+            if i.check(dict((j, 1) for j in self.tokens)):
                 fire_from_places.append(
                     (set(k.source for j in i.get_dependent() for k in j.in_arcs), i.get_dependent()))
         return fire_from_transitions + fire_from_places
@@ -93,16 +101,15 @@ class MultiAgentSystem:
     def get_trace(self):
         return self.trace
 
-    def get_trace_in_labels(self):
-        return [i.label for i in self.trace]
-
     def create_traces(self, n: int = 1, max_depth: int = None) -> list[list[EventLog]]:
         conditions = self.conditions
         tokens = self.tokens
         sync_transitions = self.sync_transitions
         result = []
+        start_time = self.start_time
 
         def restore_to_default():
+            self.start_time = start_time
             self.conditions = conditions.copy()
             self.tokens = tokens.copy()
             self.logs = []
@@ -111,7 +118,7 @@ class MultiAgentSystem:
         for i in range(n):
             restore_to_default()
             try:
-                trace = self.simulate(max_depth)
+                trace = self.simulate(max_depth, trace_id=i)
                 result.append(trace)
             except DeadLockException as ex:
                 return [ex.trace]

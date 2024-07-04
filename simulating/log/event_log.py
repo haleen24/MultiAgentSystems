@@ -3,10 +3,10 @@ from uuid import uuid4 as uuid
 
 
 class EventLog:
-    def __init__(self, who, net):
-        self.id = uuid()
+    def __init__(self, who, net, trace_id: int = 0, time: datetime.datetime = datetime.datetime.now()):
+        self.id = trace_id
         self.who = who
-        self.timestamp = datetime.datetime.now()
+        self.timestamp = time
         self.net = net
 
     def __repr__(self):

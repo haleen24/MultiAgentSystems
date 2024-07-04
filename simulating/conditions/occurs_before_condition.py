@@ -9,10 +9,10 @@ class OccursBeforeCondition(Condition):
         self.a = a
         self.b = b
 
-    def check(self, trace: set[PetriNet.Transition | str]) -> bool:
+    def check(self, trace: dict[PetriNet.Transition | str, int]) -> bool:
         return self.a in trace
 
-    def still_relevant(self, trace: set[PetriNet.Transition | str]) -> bool:
+    def still_relevant(self, trace: dict[PetriNet.Transition | str, int]) -> bool:
         return self.b not in trace
 
     def get_dependent(self) -> Iterable[PetriNet.Transition | str]:

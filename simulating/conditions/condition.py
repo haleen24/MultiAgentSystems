@@ -4,10 +4,10 @@ from pm4py import PetriNet
 
 class Condition:
 
-    def check(self, trace: set[PetriNet.Transition | str]) -> bool:
+    def check(self, trace: dict[PetriNet.Transition | str, int]) -> bool:
         pass
 
-    def still_relevant(self, trace: set[PetriNet.Transition | str]) -> bool:
+    def still_relevant(self, trace: dict[PetriNet.Transition | str, int]) -> bool:
         pass
 
     def get_dependent(self) -> Iterable[PetriNet.Transition | str]:
