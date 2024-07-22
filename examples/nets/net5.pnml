@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pnml>
+  <net id="net №5" type="http://www.pnml.org/version-2009/grammar/pnmlcoremodel">
+    <name>
+      <text>net №5</text>
+    </name>
+    <page id="n0">
+      <place id="p51">
+        <name>
+          <text>p51</text>
+        </name>
+        <initialMarking>
+          <text>1</text>
+        </initialMarking>
+      </place>
+      <place id="p52">
+        <name>
+          <text>p52</text>
+        </name>
+      </place>
+      <transition id="t5">
+        <name>
+          <text>t5</text>
+        </name>
+      </transition>
+      <arc id="2016220557520" source="p51" target="t5"/>
+      <arc id="2016220558096" source="t5" target="p52"/>
+    </page>
+  </net>
+</pnml>
